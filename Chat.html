@@ -1,0 +1,168 @@
+<Html>
+	<head>
+		<title>
+			chat
+		</title>
+		<script>
+			timer  = setInterval( pollServer, 750 ) ;
+			function send() {	
+
+				var url = "Chat_db.php?mode=send&text="+ document.getElementById('nachricht').value +"&person="+ document.getElementById("person").value +"&zeit="+ new Date().getTime() +"";
+
+				http_request = false;
+
+				if (window.XMLHttpRequest) { 
+					http_request = new XMLHttpRequest();
+					if (http_request.overrideMimeType) {
+						http_request.overrideMimeType('text/xml');
+					}
+				} else if (window.ActiveXObject) { 
+					try {
+						http_request = new ActiveXObject("Msxml2.XMLHTTP");
+					} catch (e) {
+						try {
+							http_request = new ActiveXObject("Microsoft.XMLHTTP");
+						} catch (e) {}
+					}
+				}   
+				http_request.open('GET', url, true);
+				http_request.send(null);
+				document.getElementById('nachricht').value = "";
+			}
+			var timer;
+			var active = -1 ;
+			var gpio;
+			function pollServer(){
+				try{
+					var request = new XMLHttpRequest() ;
+			
+					if( request ){
+						request.onreadystatechange = function()	{
+							if( request.readyState == 4 ){
+								if( request.status == 200 ){
+									prozess( request.responseText) ;
+								}
+							}
+						}
+				
+						request.open( "GET", "Chat_db.php?mode=read&person=" + document.getElementById("person").value, true ) ;
+						request.send( null ) ;
+					}
+					else{
+						alert( "XMLHttpRequest failed" ) ;
+				
+						clearInterval( timer ) ;
+					}
+				}
+				catch( err ){
+				alert( err.description ) ;
+				
+				clearInterval( timer ) ;
+				}
+			}
+			
+			x = 0
+			wert_alt = 0;
+			zeit_alt = 0;
+			function prozess(wert) {
+				x = x + 1;
+				
+				if(wert_alt != wert){
+					myarray = wert.split(", ");
+					text = myarray[0];
+					person = myarray[1];
+					zeit = myarray[2];
+					
+					if( zeit >= zeit_alt ){
+					
+						//erstellung
+						var dv = document.createElement("DIV");					// erstellt elemt
+						var t = document.createTextNode(text);				// erstellt text
+						dv.appendChild(t);											// setzt text
+						document.getElementById("nachrichten").appendChild(dv);	// hinzufügen zu nachrichten div
+						
+						//name => wegen style
+						if(person == document.getElementById("person").value){
+							akt_pers = "i";
+						}
+						else{
+							akt_pers = "other";
+						}
+						
+						var att = document.createAttribute("id");					// erstellt name
+						att.value = akt_pers;                           				// deviniert name
+						dv.setAttributeNode(att);									// setzt name
+						
+						wert_alt = wert
+						zeit_alt = zeit
+						
+						//document.getElementById("nachrichten")
+						//window.scrollTo(0, 9000000);
+						var myDiv = document.getElementById('nachrichten');
+						myDiv.scrollTop = myDiv.scrollHeight;
+					}
+				}
+			}
+		</script>
+		<style>
+			input{
+				font-size: 16pt;
+			}
+			div#panel{
+				position: fixed;
+				z-index: 5;
+				bottom: 3%;
+				left: 3%;
+				right: 3%;
+				background: #f1f;
+				text-align: center;
+			}
+			div#nachrichten{
+				position: fixed;
+				z-index: 3;
+				Top: 3%;
+				Bottom: 10%;
+				left: 3%;
+				right: 3%;
+				background: #1ff;
+				overflow: auto;
+			}
+			div#other{
+				float: left;
+				padding: 5pt;
+				margin: 2pt;
+				margin-left: 5%;
+				display: inline-block;
+				border-radius: 5pt;
+				font-size: 16pt;
+				background: #80FF00;
+				text-align: left;
+				max-width: 70%;
+				clear: both;
+			}
+			div#i{
+				float: right;
+				padding: 5pt;
+				margin: 2pt;
+				margin-right: 5%;
+				display: inline-block;
+				border-radius: 5pt;
+				font-size: 16pt;
+				background: #fefefe;
+				text-align: left;
+				max-width: 70%;
+				clear: both;
+			}
+		</style>
+	</head>
+	<body>
+		<div id="panel" >
+			<input type="text" placeholder="Nachricht" id="nachricht" />
+			<input type="text" placeholder="Person" id="person" />
+			<input type="button" onclick="send()" value="Senden" />
+		</div>
+		
+		<div id="nachrichten">
+		</div>
+	</body>
+</html>
