@@ -1,5 +1,5 @@
 <?php
-	$db = mysqli_connect("ryans.ch.mysql", "ryans_ch", "ryans_data", "ryans_ch");
+
 	
 	if ($_GET['mode'] == "send"){
 		$sql_stmt = "
